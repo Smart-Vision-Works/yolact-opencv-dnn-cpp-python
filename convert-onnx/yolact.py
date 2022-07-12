@@ -12,9 +12,9 @@ from backbone import construct_backbone
 # This is required for Pytorch 1.0.1 on Windows to initialize Cuda on some driver versions.
 # See the bug report here: https://github.com/pytorch/pytorch/issues/17108
 device = 'cpu'
-if torch.cuda.is_available():
-	torch.cuda.current_device()
-	device = 'cuda'
+#if torch.cuda.is_available():
+#	torch.cuda.current_device()
+#	device = 'cuda'
 
 # As of March 10, 2019, Pytorch DataParallel still doesn't support JIT Script Modules
 # use_jit = torch.cuda.device_count() <= 1

@@ -102,11 +102,11 @@ colors = [
     ]
 
 class yolact():
-    def __init__(self, confThreshold=0.5, nmsThreshold=0.5, keep_top_k=200):
-        self.target_size = 550
+    def __init__(self, modelFile, confThreshold=0.5, nmsThreshold=0.5, keep_top_k=200, target_size=550):
+        self.target_size = target_size
         self.MEANS = np.array([103.94, 116.78, 123.68], dtype=np.float32).reshape(1, 1, 3)
         self.STD = np.array([57.38, 57.12, 58.40], dtype=np.float32).reshape(1, 1, 3)
-        self.net = cv2.dnn.readNet('yolact_base_54_800000.onnx')
+        self.net = cv2.dnn.readNet(modelFile)
         self.confidence_threshold = confThreshold
         self.nms_threshold = nmsThreshold
         self.keep_top_k = keep_top_k
@@ -213,12 +213,14 @@ class yolact():
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='YOLACT COCO Evaluation')
+    parser.add_argument('--modelPath', default='model.onnx', type=str, help='A path to a model to use for display.')
     parser.add_argument('--imgpath', default='000000046804.jpg', type=str, help='A path to an image to use for display.')
     parser.add_argument('--confThreshold', default=0.5, type=float, help='class confidence')
     parser.add_argument('--nmsThreshold', default=0.5, type=float, help='nms iou thresh')
+    parser.add_argument('--targetSize', default=256, type=int, help='width and height of the model input')
     args = parser.parse_args()
 
-    myyolact = yolact()
+    myyolact = yolact(args.modelPath, target_size = args.targetSize)
     srcimg = cv2.imread(args.imgpath)
     srcimg = myyolact.detect(srcimg)
 
