@@ -17,6 +17,8 @@ COCO_CLASSES = ('background', 'person', 'bicycle', 'car', 'motorcycle', 'airplan
                 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase',
                 'scissors', 'teddy bear', 'hair drier', 'toothbrush')
 
+POTATO_CLASSES = ('background', 'potato')
+
 colors = [
         [56, 0, 255],
         [226, 255, 0],
@@ -102,7 +104,7 @@ colors = [
     ]
 
 class yolact():
-    def __init__(self, modelFile, confThreshold=0.5, nmsThreshold=0.5, keep_top_k=200, target_size=550):
+    def __init__(self, modelFile, confThreshold=0.5, nmsThreshold=0.5, keep_top_k=200, target_size=256):
         self.target_size = target_size
         self.MEANS = np.array([103.94, 116.78, 123.68], dtype=np.float32).reshape(1, 1, 3)
         self.STD = np.array([57.38, 57.12, 58.40], dtype=np.float32).reshape(1, 1, 3)
@@ -181,12 +183,15 @@ class yolact():
         loc_data, conf_preds, mask_data, proto_data = self.net.forward(self.net.getUnconnectedOutLayersNames())
 
         cur_scores = conf_preds[:, 1:]
+        print(conf_preds.shape)
         num_class = cur_scores.shape[1]
         classid = np.argmax(cur_scores, axis=1)
         # conf_scores = np.max(cur_scores, axis=1)
         conf_scores = cur_scores[range(cur_scores.shape[0]), classid]
+        print(conf_scores)
 
         # filte by confidence_threshold
+        # from IPython import embed; embed()
         keep = conf_scores > self.confidence_threshold
         conf_scores = conf_scores[keep]
         classid = classid[keep]
@@ -196,10 +201,10 @@ class yolact():
         boxes = self.decode(loc_data, prior_data, img_w, img_h)
         indices = cv2.dnn.NMSBoxes(boxes.tolist(), conf_scores.tolist(), self.confidence_threshold, self.nms_threshold , top_k=self.keep_top_k)
         for i in indices:
-            idx = i[0]
+            idx = i
             left, top, width, height = boxes[idx, :].astype(np.int32).tolist()
             cv2.rectangle(srcimg, (left, top), (left+width, top+height), (0, 0, 255), thickness=1)
-            cv2.putText(srcimg, COCO_CLASSES[classid[idx]+1]+':'+str(round(conf_scores[idx], 2)), (left, top-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2)
+            cv2.putText(srcimg, POTATO_CLASSES[classid[idx]+1]+':'+str(round(conf_scores[idx], 2)), (left, top-5), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), thickness=2)
 
             # generate mask
             mask = proto_data @ masks[idx, :].reshape(-1,1)
